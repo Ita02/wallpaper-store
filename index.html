@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="sw">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Digital Asset Store</title>
-  <!-- Script ya Ethers.js kusoma Blockchain -->
+  <!-- Ethers.js Library -->
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -16,9 +16,17 @@
     .description { font-size: 14px; color: #94a3b8; margin-top: 8px; line-height: 1.5; }
     .price-box { margin: 20px 0; background: #0f172a; padding: 16px; border-radius: 12px; border: 1px dashed #334155; }
     .price { font-size: 28px; font-weight: bold; color: #10b981; display: block; }
-    .network-tag { font-size: 12px; color: #64748b; }
+    .network-tag { font-size: 12px; color: #64748b; margin-top: 4px; display: block; }
+    .wallet-display { font-size: 11px; color: #38bdf8; margin-top: 6px; word-break: break-all; background: #1e293b; padding: 6px; border-radius: 6px; }
     .preview-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 20px; }
     .preview-item { background: #1e293b; height: 60px; border-radius: 6px; font-size: 10px; color: #64748b; display: flex; align-items: center; justify-content: center; border: 1px solid #334155; }
+    
+    /* Wallet Selection Grid */
+    .wallet-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 15px; }
+    .wallet-btn { background: #1e293b; border: 1px solid #334155; border-radius: 10px; padding: 12px 8px; color: #fff; font-size: 12px; font-weight: bold; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 6px; transition: 0.2s; }
+    .wallet-btn:hover { background: #2563eb; border-color: #3b82f6; }
+    .wallet-icon { font-size: 22px; }
+
     .btn-primary { background: #2563eb; color: #fff; border: none; width: 100%; padding: 14px; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s; }
     .btn-primary:hover { background: #1d4ed8; }
     .btn-primary:disabled { background: #475569; cursor: not-allowed; }
@@ -28,7 +36,7 @@
     .icon-success { font-size: 30px; margin-bottom: 6px; }
     .btn-success { display: block; background: #10b981; color: #fff; text-decoration: none; font-weight: bold; padding: 12px; border-radius: 6px; margin-top: 12px; text-align: center; }
 
-    /* Modal ya Admin Panel */
+    /* Admin Modal */
     .admin-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 1000; }
     .admin-card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 24px; width: 90%; max-width: 400px; text-align: left; }
     .admin-card h2 { font-size: 18px; margin-bottom: 16px; color: #38bdf8; }
@@ -45,36 +53,54 @@
   <div class="container">
     <div class="card">
       <span class="badge" id="productBadge">BATCH EXCLUSIVE</span>
-      <!-- Double click hapa kufungua Admin Panel -->
+      <!-- Double-click here to open secret Admin Panel -->
       <h1 id="productTitle" ondblclick="openAdmin()">Mega HD Wallpapers & Stickers</h1>
       <p class="description" id="productDesc">
-        Pata koleksheni kamili ya picha za HD kwa ajili ya simu na kompyuta. Malipo ya mara moja, unapata bidhaa yako papo hapo.
+        Get the complete collection of HD wallpapers and stickers for mobile and PC. One-time payment, instant access.
       </p>
 
       <div class="price-box">
         <span class="price" id="displayPrice">10 USDT</span>
-        <span class="network-tag">Polygon Network</span>
+        <span class="network-tag">Polygon Network (USDT)</span>
+        <span class="wallet-display">Receiver: <span id="lblWallet">0xE7f2e19705F23BE15637170135b34459F397cbb8</span></span>
       </div>
 
       <div class="preview-grid">
-        <div class="preview-item">Picha 1</div>
-        <div class="preview-item">Picha 2</div>
-        <div class="preview-item">Picha 3</div>
+        <div class="preview-item">Item 1</div>
+        <div class="preview-item">Item 2</div>
+        <div class="preview-item">Item 3</div>
       </div>
 
-      <button id="payBtn" class="btn-primary" onclick="payWithCrypto()">
-        Unganisha Wallet & Lipa 10 USDT
+      <!-- Wallet Icons Selection -->
+      <p style="font-size: 12px; color: #94a3b8; margin-bottom: 8px;">Select your wallet to connect:</p>
+      <div class="wallet-container">
+        <button class="wallet-btn" onclick="connectWallet('metamask')">
+          <span class="wallet-icon">🦊</span>
+          MetaMask
+        </button>
+        <button class="wallet-btn" onclick="connectWallet('trust')">
+          <span class="wallet-icon">🛡️</span>
+          Trust Wallet
+        </button>
+        <button class="wallet-btn" onclick="connectWallet('generic')">
+          <span class="wallet-icon">🌐</span>
+          Web3 Wallet
+        </button>
+      </div>
+
+      <button id="payBtn" class="btn-primary hidden" onclick="payWithCrypto()">
+        Pay Exact Amount Now
       </button>
 
       <p id="statusMessage" class="status-text"></p>
 
-      <!-- Sehemu ya Download ya moja kwa moja baada ya malipo -->
+      <!-- Instant Download Box -->
       <div id="downloadSection" class="download-box hidden">
         <div class="icon-success">✅</div>
-        <h3>Malipo Yamethibitishwa!</h3>
-        <p>Bidhaa yako iko tayari kwa ajili ya kupakuliwa:</p>
+        <h3>Payment Verified!</h3>
+        <p>Exact amount received. Your digital asset is ready:</p>
         <a id="downloadBtn" href="#" target="_blank" class="btn-success">
-          📥 Pakua Bidhaa Yako Hapa Hapo
+          📥 Download Your Files Here
         </a>
       </div>
     </div>
@@ -85,42 +111,48 @@
     <div class="admin-card">
       <h2>⚙️ Owner Settings</h2>
       <div class="admin-field">
-        <label>Jina la Bidhaa</label>
+        <label>Product Title</label>
         <input type="text" id="inputTitle" value="Mega HD Wallpapers & Stickers">
       </div>
       <div class="admin-field">
-        <label>Maelezo ya Bidhaa</label>
-        <input type="text" id="inputDesc" value="Pata koleksheni kamili ya picha za HD.">
+        <label>Description</label>
+        <input type="text" id="inputDesc" value="Get the complete collection of HD wallpapers.">
       </div>
       <div class="admin-field">
-        <label>Bei (USDT)</label>
+        <label>Price (USDT)</label>
         <input type="number" id="inputPrice" value="10">
       </div>
       <div class="admin-field">
-        <label>Kiungo cha Kupakua (Download URL)</label>
-        <input type="text" id="inputUrl" value="#" placeholder="Weka link ya bidhaa yako hapa">
+        <label>Receiver Wallet Address</label>
+        <input type="text" id="inputWallet" value="0xE7f2e19705F23BE15637170135b34459F397cbb8">
+      </div>
+      <div class="admin-field">
+        <label>Download URL</label>
+        <input type="text" id="inputUrl" value="#" placeholder="Paste your download link here">
       </div>
       <div class="admin-btns">
-        <button class="btn-admin-save" onclick="saveSettings()">Hifadhi Mabadiliko</button>
-        <button class="btn-admin-close" onclick="closeAdmin()">Funga</button>
+        <button class="btn-admin-save" onclick="saveSettings()">Save Changes</button>
+        <button class="btn-admin-close" onclick="closeAdmin()">Close</button>
       </div>
     </div>
   </div>
 
   <script>
-    const sellerWallet = "0xE7f2e19705F23BE15637170135b34459F397cbb8";
+    let sellerWallet = "0xE7f2e19705F23BE15637170135b34459F397cbb8";
     const usdtContractAddress = "0xc2132D05D31c914a87C6611C10748AEb04B58e8F";
     let requiredAmountUSD = 10;
     const adminPassword = "admin123";
 
     const minABI = [
-      "function transfer(address to, uint amount) returns (bool)"
+      "function transfer(address to, uint amount) returns (bool)",
+      "function balanceOf(address account) view returns (uint256)"
     ];
 
     window.onload = function() {
       const savedTitle = localStorage.getItem('store_title');
       const savedDesc = localStorage.getItem('store_desc');
       const savedPrice = localStorage.getItem('store_price');
+      const savedWallet = localStorage.getItem('store_wallet');
       const savedUrl = localStorage.getItem('store_url');
 
       if (savedTitle) document.getElementById('productTitle').innerText = savedTitle;
@@ -128,43 +160,75 @@
       if (savedPrice) {
         requiredAmountUSD = parseFloat(savedPrice);
         document.getElementById('displayPrice').innerText = savedPrice + " USDT";
-        document.getElementById('payBtn').innerText = "Unganisha Wallet & Lipa " + savedPrice + " USDT";
+        document.getElementById('payBtn').innerText = "Pay " + savedPrice + " USDT Exact";
+      }
+      if (savedWallet) {
+        sellerWallet = savedWallet;
+        document.getElementById('lblWallet').innerText = savedWallet;
       }
       if (savedUrl) document.getElementById('downloadBtn').setAttribute('href', savedUrl);
     };
+
+    async function connectWallet(type) {
+      const status = document.getElementById("statusMessage");
+      const payBtn = document.getElementById("payBtn");
+
+      if (typeof window.ethereum === "undefined") {
+        const currentUrl = window.location.href.replace(/^https?:\/\//, '');
+        if (type === 'trust') {
+          window.location.href = `https://link.trustwallet.com/open_url?coin_id=966&url=https://${currentUrl}`;
+          return;
+        } else if (type === 'metamask') {
+          window.location.href = `https://metamask.app.link/dapp/${currentUrl}`;
+          return;
+        }
+      }
+
+      try {
+        status.innerText = "Connecting to your wallet...";
+        
+        let provider;
+        if (window.ethereum) {
+          provider = new ethers.providers.Web3Provider(window.ethereum);
+          await provider.send("eth_requestAccounts", []);
+        } else {
+          status.innerHTML = "<span style='color:#ef4444;'>Please open this page inside your Web3 wallet browser!</span>";
+          return;
+        }
+
+        const network = await provider.getNetwork();
+        if (network.chainId !== 137) {
+          status.innerHTML = "<span style='color:#ef4444;'>Please switch your network to Polygon in your wallet!</span>";
+          return;
+        }
+
+        status.innerText = "Wallet connected! Click below to pay exact amount.";
+        payBtn.classList.remove("hidden");
+
+      } catch (error) {
+        console.error(error);
+        status.innerHTML = "<span style='color:#ef4444;'>Connection failed or cancelled.</span>";
+      }
+    }
 
     async function payWithCrypto() {
       const status = document.getElementById("statusMessage");
       const payBtn = document.getElementById("payBtn");
 
-      if (typeof window.ethereum === "undefined") {
-        status.innerHTML = "<span style='color:#ef4444;'>Tafadhali tumia browser yenye Web3 Wallet kama Trust Wallet au MetaMask!</span>";
-        return;
-      }
-
       try {
-        status.innerText = "Inaunganisha na wallet yako...";
+        status.innerText = `Please confirm the exact payment of ${requiredAmountUSD} USDT in your wallet...`;
         payBtn.disabled = true;
-        
+
         const provider = new ethers.providers.Web3Provider(window.ethereum);
-        await provider.send("eth_requestAccounts", []);
         const signer = provider.getSigner();
-
-        const network = await provider.getNetwork();
-        if (network.chainId !== 137) {
-          status.innerHTML = "<span style='color:#ef4444;'>Tafadhali badilisha mtandao uwe **Polygon** kwenye wallet yako!</span>";
-          payBtn.disabled = false;
-          return;
-        }
-
-        status.innerText = `Tafadhali thibitisha muamala wa ${requiredAmountUSD} USDT kwenye wallet...`;
         const usdtContract = new ethers.Contract(usdtContractAddress, minABI, signer);
         
+        // Strict exact amount check configuration (6 decimals for Polygon USDT)
         const amount = ethers.utils.parseUnits(requiredAmountUSD.toString(), 6);
         
         const tx = await usdtContract.transfer(sellerWallet, amount);
-        status.innerText = "Inahakiki muamala kwenye Blockchain... Subiri sekunde chache.";
         
+        status.innerText = "Verifying exact transaction on Polygon Blockchain...";
         await tx.wait();
 
         status.innerText = "";
@@ -174,16 +238,17 @@
       } catch (error) {
         console.error(error);
         payBtn.disabled = false;
-        status.innerHTML = "<span style='color:#ef4444;'>Muamala haukukamilika au ulighairiwa. Jaribu tena.</span>";
+        status.innerHTML = "<span style='color:#ef4444;'>Payment rejected, insufficient funds, or incorrect amount. Try again.</span>";
       }
     }
 
     function openAdmin() {
-      const pwd = prompt("Ingiza Neno la Siri la Owner:");
+      const pwd = prompt("Enter Owner Password:");
       if (pwd === adminPassword) {
         document.getElementById('adminModal').classList.remove('hidden');
+        document.getElementById('inputWallet').value = sellerWallet;
       } else if (pwd !== null) {
-        alert("Neno la siri sio sahihi!");
+        alert("Incorrect password!");
       }
     }
 
@@ -195,15 +260,17 @@
       const title = document.getElementById('inputTitle').value;
       const desc = document.getElementById('inputDesc').value;
       const price = document.getElementById('inputPrice').value;
+      const wallet = document.getElementById('inputWallet').value;
       const url = document.getElementById('inputUrl').value;
 
       localStorage.setItem('store_title', title);
       localStorage.setItem('store_desc', desc);
       localStorage.setItem('store_price', price);
+      localStorage.setItem('store_wallet', wallet);
       localStorage.setItem('store_url', url);
 
       location.reload();
     }
   </script>
 </body>
-</html>
+          </html>
