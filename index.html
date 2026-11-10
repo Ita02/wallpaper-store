@@ -26,7 +26,7 @@
     .hidden { display: none !important; }
     .download-box { background: #064e3b; border: 1px solid #059669; border-radius: 12px; padding: 20px; margin-top: 20px; }
     .icon-success { font-size: 30px; margin-bottom: 6px; }
-    .btn-success { display: block; background: #10b981; color: #fff; text-decoration: none; font-weight: bold; padding: 12px; border-radius: 6px; margin-top: 12px; }
+    .btn-success { display: block; background: #10b981; color: #fff; text-decoration: none; font-weight: bold; padding: 12px; border-radius: 6px; margin-top: 12px; text-align: center; }
 
     /* Modal ya Admin Panel */
     .admin-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 1000; }
@@ -45,10 +45,10 @@
   <div class="container">
     <div class="card">
       <span class="badge" id="productBadge">BATCH EXCLUSIVE</span>
-      <!-- Ukibonyeza mara mbili (Double Click) hapa kwenye jina la bidhaa, ndipo panapofungua Admin Panel ya siri -->
+      <!-- Double click hapa kufungua Admin Panel -->
       <h1 id="productTitle" ondblclick="openAdmin()">Mega HD Wallpapers & Stickers</h1>
       <p class="description" id="productDesc">
-        Pata koleksheni kamili ya picha 20 za HD (Wallpapers na Stickers za simu na kompyuta). Malipo ya mara moja, unajipatia mzigo wako wote papo hapo.
+        Pata koleksheni kamili ya picha za HD kwa ajili ya simu na kompyuta. Malipo ya mara moja, unapata bidhaa yako papo hapo.
       </p>
 
       <div class="price-box">
@@ -56,33 +56,31 @@
         <span class="network-tag">Polygon Network</span>
       </div>
 
-      <!-- Sampuli za Picha -->
       <div class="preview-grid">
-        <div class="preview-item">Picha 1 (Preview)</div>
-        <div class="preview-item">Picha 2 (Preview)</div>
-        <div class="preview-item">Picha 3 (Preview)</div>
+        <div class="preview-item">Picha 1</div>
+        <div class="preview-item">Picha 2</div>
+        <div class="preview-item">Picha 3</div>
       </div>
 
-      <!-- Kitufe cha Malipo -->
       <button id="payBtn" class="btn-primary" onclick="payWithCrypto()">
         Unganisha Wallet & Lipa 10 USDT
       </button>
 
       <p id="statusMessage" class="status-text"></p>
 
-      <!-- Kitufe cha Download -->
+      <!-- Sehemu ya Download ya moja kwa moja baada ya malipo -->
       <div id="downloadSection" class="download-box hidden">
         <div class="icon-success">✅</div>
         <h3>Malipo Yamethibitishwa!</h3>
-        <p>Mzigo wako uko tayari. Bonyeza kitufe hapa chini kupakua:</p>
-        <a id="downloadBtn" href="bundle-20-wallpapers.zip" download class="btn-success">
-          📥 Download Picha Zote 20 (ZIP)
+        <p>Bidhaa yako iko tayari kwa ajili ya kupakuliwa:</p>
+        <a id="downloadBtn" href="#" target="_blank" class="btn-success">
+          📥 Pakua Bidhaa Yako Hapa Hapo
         </a>
       </div>
     </div>
   </div>
 
-  <!-- Admin Modal Popup (Imejificha kabisa) -->
+  <!-- Admin Modal -->
   <div id="adminModal" class="admin-modal hidden">
     <div class="admin-card">
       <h2>⚙️ Owner Settings</h2>
@@ -92,15 +90,15 @@
       </div>
       <div class="admin-field">
         <label>Maelezo ya Bidhaa</label>
-        <input type="text" id="inputDesc" value="Pata koleksheni kamili ya picha 20 za HD.">
+        <input type="text" id="inputDesc" value="Pata koleksheni kamili ya picha za HD.">
       </div>
       <div class="admin-field">
         <label>Bei (USDT)</label>
         <input type="number" id="inputPrice" value="10">
       </div>
       <div class="admin-field">
-        <label>Jina la Faili la Download (.zip)</label>
-        <input type="text" id="inputZip" value="bundle-20-wallpapers.zip">
+        <label>Kiungo cha Kupakua (Download URL)</label>
+        <input type="text" id="inputUrl" value="#" placeholder="Weka link ya bidhaa yako hapa">
       </div>
       <div class="admin-btns">
         <button class="btn-admin-save" onclick="saveSettings()">Hifadhi Mabadiliko</button>
@@ -113,7 +111,7 @@
     const sellerWallet = "0xE7f2e19705F23BE15637170135b34459F397cbb8";
     const usdtContractAddress = "0xc2132D05D31c914a87C6611C10748AEb04B58e8F";
     let requiredAmountUSD = 10;
-    const adminPassword = "admin123"; // Password yako ya siri
+    const adminPassword = "admin123";
 
     const minABI = [
       "function transfer(address to, uint amount) returns (bool)"
@@ -123,7 +121,7 @@
       const savedTitle = localStorage.getItem('store_title');
       const savedDesc = localStorage.getItem('store_desc');
       const savedPrice = localStorage.getItem('store_price');
-      const savedZip = localStorage.getItem('store_zip');
+      const savedUrl = localStorage.getItem('store_url');
 
       if (savedTitle) document.getElementById('productTitle').innerText = savedTitle;
       if (savedDesc) document.getElementById('productDesc').innerText = savedDesc;
@@ -132,7 +130,7 @@
         document.getElementById('displayPrice').innerText = savedPrice + " USDT";
         document.getElementById('payBtn').innerText = "Unganisha Wallet & Lipa " + savedPrice + " USDT";
       }
-      if (savedZip) document.getElementById('downloadBtn').setAttribute('href', savedZip);
+      if (savedUrl) document.getElementById('downloadBtn').setAttribute('href', savedUrl);
     };
 
     async function payWithCrypto() {
@@ -180,7 +178,6 @@
       }
     }
 
-    // Sehemu ya siri ya kufungua Admin Panel
     function openAdmin() {
       const pwd = prompt("Ingiza Neno la Siri la Owner:");
       if (pwd === adminPassword) {
@@ -198,12 +195,12 @@
       const title = document.getElementById('inputTitle').value;
       const desc = document.getElementById('inputDesc').value;
       const price = document.getElementById('inputPrice').value;
-      const zip = document.getElementById('inputZip').value;
+      const url = document.getElementById('inputUrl').value;
 
       localStorage.setItem('store_title', title);
       localStorage.setItem('store_desc', desc);
       localStorage.setItem('store_price', price);
-      localStorage.setItem('store_zip', zip);
+      localStorage.setItem('store_url', url);
 
       location.reload();
     }
