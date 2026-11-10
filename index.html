@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Digital Asset Store</title>
+  <!-- Script ya Ethers.js kusoma Blockchain -->
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0b0f19; color: #f8fafc; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+    .container { width: 100%; max-width: 480px; }
+    .card { background: #151c2c; border: 1px solid #1e293b; border-radius: 16px; padding: 32px 24px; text-align: center; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5); }
+    .badge { background: #3b82f6; color: #fff; font-size: 11px; font-weight: bold; padding: 4px 12px; border-radius: 20px; text-transform: uppercase; letter-spacing: 1px; }
+    h1 { font-size: 22px; margin-top: 14px; color: #ffffff; cursor: default; user-select: none; }
+    .description { font-size: 14px; color: #94a3b8; margin-top: 8px; line-height: 1.5; }
+    .price-box { margin: 20px 0; background: #0f172a; padding: 16px; border-radius: 12px; border: 1px dashed #334155; }
+    .price { font-size: 28px; font-weight: bold; color: #10b981; display: block; }
+    .network-tag { font-size: 12px; color: #64748b; }
+    .preview-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 20px; }
+    .preview-item { background: #1e293b; height: 60px; border-radius: 6px; font-size: 10px; color: #64748b; display: flex; align-items: center; justify-content: center; border: 1px solid #334155; }
+    .btn-primary { background: #2563eb; color: #fff; border: none; width: 100%; padding: 14px; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+    .btn-primary:hover { background: #1d4ed8; }
+    .btn-primary:disabled { background: #475569; cursor: not-allowed; }
+    .status-text { font-size: 13px; color: #38bdf8; margin-top: 12px; }
+    .hidden { display: none !important; }
+    .download-box { background: #064e3b; border: 1px solid #059669; border-radius: 12px; padding: 20px; margin-top: 20px; }
+    .icon-success { font-size: 30px; margin-bottom: 6px; }
+    .btn-success { display: block; background: #10b981; color: #fff; text-decoration: none; font-weight: bold; padding: 12px; border-radius: 6px; margin-top: 12px; }
+
+    /* Modal ya Admin Panel */
+    .admin-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+    .admin-card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 24px; width: 90%; max-width: 400px; text-align: left; }
+    .admin-card h2 { font-size: 18px; margin-bottom: 16px; color: #38bdf8; }
+    .admin-field { margin-bottom: 12px; }
+    .admin-field label { display: block; font-size: 12px; color: #94a3b8; margin-bottom: 4px; }
+    .admin-field input { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #475569; background: #0f172a; color: #fff; font-size: 14px; }
+    .admin-btns { display: flex; gap: 8px; margin-top: 16px; }
+    .btn-admin-save { background: #10b981; color: #fff; border: none; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer; flex: 1; }
+    .btn-admin-close { background: #64748b; color: #fff; border: none; padding: 10px; border-radius: 6px; cursor: pointer; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="card">
+      <span class="badge" id="productBadge">BATCH EXCLUSIVE</span>
+      <!-- Ukibonyeza mara mbili (Double Click) hapa kwenye jina la bidhaa, ndipo panapofungua Admin Panel ya siri -->
+      <h1 id="productTitle" ondblclick="openAdmin()">Mega HD Wallpapers & Stickers</h1>
+      <p class="description" id="productDesc">
+        Pata koleksheni kamili ya picha 20 za HD (Wallpapers na Stickers za simu na kompyuta). Malipo ya mara moja, unajipatia mzigo wako wote papo hapo.
+      </p>
+
+      <div class="price-box">
+        <span class="price" id="displayPrice">10 USDT</span>
+        <span class="network-tag">Polygon Network</span>
+      </div>
+
+      <!-- Sampuli za Picha -->
+      <div class="preview-grid">
+        <div class="preview-item">Picha 1 (Preview)</div>
+        <div class="preview-item">Picha 2 (Preview)</div>
+        <div class="preview-item">Picha 3 (Preview)</div>
+      </div>
+
+      <!-- Kitufe cha Malipo -->
+      <button id="payBtn" class="btn-primary" onclick="payWithCrypto()">
+        Unganisha Wallet & Lipa 10 USDT
+      </button>
+
+      <p id="statusMessage" class="status-text"></p>
+
+      <!-- Kitufe cha Download -->
+      <div id="downloadSection" class="download-box hidden">
+        <div class="icon-success">✅</div>
+        <h3>Malipo Yamethibitishwa!</h3>
+        <p>Mzigo wako uko tayari. Bonyeza kitufe hapa chini kupakua:</p>
+        <a id="downloadBtn" href="bundle-20-wallpapers.zip" download class="btn-success">
+          📥 Download Picha Zote 20 (ZIP)
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Admin Modal Popup (Imejificha kabisa) -->
+  <div id="adminModal" class="admin-modal hidden">
+    <div class="admin-card">
+      <h2>⚙️ Owner Settings</h2>
+      <div class="admin-field">
+        <label>Jina la Bidhaa</label>
+        <input type="text" id="inputTitle" value="Mega HD Wallpapers & Stickers">
+      </div>
+      <div class="admin-field">
+        <label>Maelezo ya Bidhaa</label>
+        <input type="text" id="inputDesc" value="Pata koleksheni kamili ya picha 20 za HD.">
+      </div>
+      <div class="admin-field">
+        <label>Bei (USDT)</label>
+        <input type="number" id="inputPrice" value="10">
+      </div>
+      <div class="admin-field">
+        <label>Jina la Faili la Download (.zip)</label>
+        <input type="text" id="inputZip" value="bundle-20-wallpapers.zip">
+      </div>
+      <div class="admin-btns">
+        <button class="btn-admin-save" onclick="saveSettings()">Hifadhi Mabadiliko</button>
+        <button class="btn-admin-close" onclick="closeAdmin()">Funga</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const sellerWallet = "0xE7f2e19705F23BE15637170135b34459F397cbb8";
+    const usdtContractAddress = "0xc2132D05D31c914a87C6611C10748AEb04B58e8F";
+    let requiredAmountUSD = 10;
+    const adminPassword = "admin123"; // Password yako ya siri
+
+    const minABI = [
+      "function transfer(address to, uint amount) returns (bool)"
+    ];
+
+    window.onload = function() {
+      const savedTitle = localStorage.getItem('store_title');
+      const savedDesc = localStorage.getItem('store_desc');
+      const savedPrice = localStorage.getItem('store_price');
+      const savedZip = localStorage.getItem('store_zip');
+
+      if (savedTitle) document.getElementById('productTitle').innerText = savedTitle;
+      if (savedDesc) document.getElementById('productDesc').innerText = savedDesc;
+      if (savedPrice) {
+        requiredAmountUSD = parseFloat(savedPrice);
+        document.getElementById('displayPrice').innerText = savedPrice + " USDT";
+        document.getElementById('payBtn').innerText = "Unganisha Wallet & Lipa " + savedPrice + " USDT";
+      }
+      if (savedZip) document.getElementById('downloadBtn').setAttribute('href', savedZip);
+    };
+
+    async function payWithCrypto() {
+      const status = document.getElementById("statusMessage");
+      const payBtn = document.getElementById("payBtn");
+
+      if (typeof window.ethereum === "undefined") {
+        status.innerHTML = "<span style='color:#ef4444;'>Tafadhali tumia browser yenye Web3 Wallet kama Trust Wallet au MetaMask!</span>";
+        return;
+      }
+
+      try {
+        status.innerText = "Inaunganisha na wallet yako...";
+        payBtn.disabled = true;
+        
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        await provider.send("eth_requestAccounts", []);
+        const signer = provider.getSigner();
+
+        const network = await provider.getNetwork();
+        if (network.chainId !== 137) {
+          status.innerHTML = "<span style='color:#ef4444;'>Tafadhali badilisha mtandao uwe **Polygon** kwenye wallet yako!</span>";
+          payBtn.disabled = false;
+          return;
+        }
+
+        status.innerText = `Tafadhali thibitisha muamala wa ${requiredAmountUSD} USDT kwenye wallet...`;
+        const usdtContract = new ethers.Contract(usdtContractAddress, minABI, signer);
+        
+        const amount = ethers.utils.parseUnits(requiredAmountUSD.toString(), 6);
+        
+        const tx = await usdtContract.transfer(sellerWallet, amount);
+        status.innerText = "Inahakiki muamala kwenye Blockchain... Subiri sekunde chache.";
+        
+        await tx.wait();
+
+        status.innerText = "";
+        payBtn.classList.add("hidden");
+        document.getElementById("downloadSection").classList.remove("hidden");
+
+      } catch (error) {
+        console.error(error);
+        payBtn.disabled = false;
+        status.innerHTML = "<span style='color:#ef4444;'>Muamala haukukamilika au ulighairiwa. Jaribu tena.</span>";
+      }
+    }
+
+    // Sehemu ya siri ya kufungua Admin Panel
+    function openAdmin() {
+      const pwd = prompt("Ingiza Neno la Siri la Owner:");
+      if (pwd === adminPassword) {
+        document.getElementById('adminModal').classList.remove('hidden');
+      } else if (pwd !== null) {
+        alert("Neno la siri sio sahihi!");
+      }
+    }
+
+    function closeAdmin() {
+      document.getElementById('adminModal').classList.add('hidden');
+    }
+
+    function saveSettings() {
+      const title = document.getElementById('inputTitle').value;
+      const desc = document.getElementById('inputDesc').value;
+      const price = document.getElementById('inputPrice').value;
+      const zip = document.getElementById('inputZip').value;
+
+      localStorage.setItem('store_title', title);
+      localStorage.setItem('store_desc', desc);
+      localStorage.setItem('store_price', price);
+      localStorage.setItem('store_zip', zip);
+
+      location.reload();
+    }
+  </script>
+</body>
+</html>
