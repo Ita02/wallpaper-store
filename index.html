@@ -129,7 +129,7 @@
       <div class="ai-chat-box">
         <div class="ai-chat-title">💬 Live Store Support</div>
         <div class="ai-messages" id="chatMessages">
-          <div class="ai-msg bot">Hello! How can I help you with our HD wallpapers and USDT payment today?</div>
+          <div class="ai-msg bot">Hello! Welcome to our store. Currently our showroom is getting ready, but we will upload our exclusive HD wallpapers and stickers very soon. Stay tuned!</div>
         </div>
         <div class="ai-input-area">
           <input type="text" id="chatInput" placeholder="Ask anything about the store..." onkeypress="handleChatKey(event)">
@@ -273,11 +273,11 @@
         if (data.choices && data.choices[0]) {
           return data.choices[0].message.content;
         } else {
-          return "Sorry, I couldn't process that right now.";
+          return "Welcome to our store! We are currently preparing our exclusive collection and will upload our HD wallpapers and stickers very soon.";
         }
       } catch (err) {
         console.error(err);
-        return "Network error connecting to AI.";
+        return "Welcome! Our store items will be available very soon. Thank you for visiting!";
       }
     }
 
@@ -295,7 +295,9 @@
       msgBox.innerHTML += `<div class="ai-msg bot" id="${typingId}">Thinking...</div>`;
       msgBox.scrollTop = msgBox.scrollHeight;
 
-      const systemPrompt = "You are a friendly and professional customer care assistant for an exclusive digital wallpaper and sticker store operating on the Polygon network using USDT. Answer clearly and concisely in English.";
+      const storeStatus = storedImages.length === 0 ? "The store is currently empty and products haven't been uploaded yet." : `The store has ${storedImages.length} products uploaded.`;
+      const systemPrompt = `You are a professional and welcoming customer care assistant for an exclusive digital wallpaper and sticker store on Polygon/USDT. Current store status: ${storeStatus}. If the user asks about products or store status, politely inform them that our products will be uploaded very soon if empty, or assist them with purchases in English. Never say sorry or generic error phrases; always be welcoming and helpful.`;
+      
       const reply = await callGroqAI(text, systemPrompt);
 
       document.getElementById(typingId).innerText = reply;
@@ -458,4 +460,4 @@
     }
   </script>
 </body>
-            </html>
+  </html>
