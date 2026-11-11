@@ -43,8 +43,19 @@
     .unlocked-thumb { width: 100%; height: 60px; background-size: cover; background-position: center; border-radius: 4px; background-color: #034732; }
     .unlocked-item a { color: #34d399; text-decoration: none; font-weight: bold; background: #065f46; padding: 4px 8px; border-radius: 4px; display: block; width: 100%; }
 
+    /* AI Customer Care Chat Widget Styles */
+    .ai-chat-box { margin-top: 20px; background: #0f172a; border: 1px solid #334155; border-radius: 12px; padding: 12px; text-align: left; }
+    .ai-chat-title { font-size: 12px; font-weight: bold; color: #38bdf8; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+    .ai-messages { height: 120px; overflow-y: auto; font-size: 11px; display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; padding-right: 4px; }
+    .ai-msg { padding: 6px 10px; border-radius: 8px; max-width: 85%; line-height: 1.4; }
+    .ai-msg.bot { background: #1e293b; color: #cbd5e1; align-self: flex-start; }
+    .ai-msg.user { background: #2563eb; color: #fff; align-self: flex-end; }
+    .ai-input-area { display: flex; gap: 6px; }
+    .ai-input-area input { flex: 1; padding: 8px; font-size: 11px; background: #151c2c; border: 1px solid #475569; color: #fff; border-radius: 6px; }
+    .ai-input-area button { background: #10b981; color: #fff; border: none; padding: 0 12px; border-radius: 6px; font-weight: bold; font-size: 11px; cursor: pointer; }
+
     /* Bottom Admin Login Button */
-    .admin-footer-btn { margin-top: 20px; font-size: 12px; color: #64748b; background: none; border: none; cursor: pointer; text-decoration: underline; width: 100%; text-align: center; }
+    .admin-footer-btn { margin-top: 15px; font-size: 11px; color: #64748b; background: none; border: none; cursor: pointer; text-decoration: underline; width: 100%; text-align: center; }
     .admin-footer-btn:hover { color: #38bdf8; }
 
     /* Admin Modal */
@@ -76,16 +87,16 @@
       </div>
 
       <!-- Showroom Preview (3 Sample Items) -->
-      <div class="preview-title">Showroom Previews (Sample 3 Items):</div>
-      <div class="preview-grid">
+      <div class="preview-title" id="showroomTitle">Showroom Previews (Sample 3 Items):</div>
+      <div class="preview-grid" id="showroomGrid">
         <div class="preview-item" id="prev0">Sample 1</div>
         <div class="preview-item" id="prev1">Sample 2</div>
         <div class="preview-item" id="prev2">Sample 3</div>
       </div>
 
       <!-- Wallet Icons Selection -->
-      <p style="font-size: 12px; color: #94a3b8; margin-bottom: 8px;">Select your wallet to connect:</p>
-      <div class="wallet-container">
+      <p style="font-size: 12px; color: #94a3b8; margin-bottom: 8px;" id="walletLabel">Select your wallet to connect:</p>
+      <div class="wallet-container" id="walletContainer">
         <button class="wallet-btn" onclick="connectWallet('metamask')">
           <span class="wallet-icon">🦊</span>
           MetaMask
@@ -114,6 +125,18 @@
         <div class="unlocked-grid" id="unlockedList"></div>
       </div>
 
+      <!-- Customer Care AI Chat Widget -->
+      <div class="ai-chat-box">
+        <div class="ai-chat-title">💬 Live Store Support</div>
+        <div class="ai-messages" id="chatMessages">
+          <div class="ai-msg bot">Hello! How can I help you with our HD wallpapers and USDT payment today?</div>
+        </div>
+        <div class="ai-input-area">
+          <input type="text" id="chatInput" placeholder="Ask anything about the store..." onkeypress="handleChatKey(event)">
+          <button onclick="sendChatMessage()">Send</button>
+        </div>
+      </div>
+
       <!-- Admin Login Button -->
       <button class="admin-footer-btn" onclick="openAdmin()">⚙️ Owner Admin Login</button>
     </div>
@@ -122,7 +145,7 @@
   <!-- Admin Modal -->
   <div id="adminModal" class="admin-modal hidden">
     <div class="admin-card">
-      <h2>⚙️ Owner Upload Panel</h2>
+      <h2>⚙️ Owner Upload & AI Secretary</h2>
       <div class="admin-field">
         <label>Product Title</label>
         <input type="text" id="inputTitle" value="Mega HD Wallpapers & Stickers">
@@ -144,11 +167,22 @@
         <input type="password" id="inputPassword" placeholder="Enter new admin password">
       </div>
       <div class="admin-field">
-        <label>Upload Images (Select up to 20 images from your device)</label>
+        <label>Upload Images (Select up to 15 images)</label>
         <input type="file" id="imageFiles" multiple accept="image/*" style="color: #fff;">
       </div>
-      <div class="admin-btns">
-        <button class="btn-admin-save" onclick="saveAdminSettings()">Save & Upload</button>
+      
+      <!-- Secretary AI Box Inside Admin -->
+      <div style="margin-top: 15px; background: #0f172a; padding: 10px; border-radius: 8px; border: 1px solid #334155;">
+        <label style="color: #38bdf8; font-weight: bold; margin-bottom: 6px; display: block;">🤖 AI Secretary Panel Assistant</label>
+        <div id="adminAiOutput" style="font-size: 11px; color: #94a3b8; margin-bottom: 8px; max-height: 80px; overflow-y: auto;">Ask me about your store status, pricing, or sales tips!</div>
+        <div style="display: flex; gap: 6px;">
+          <input type="text" id="adminAiInput" placeholder="Ask secretary..." style="flex:1; padding:6px; font-size:11px; background:#1e293b; border:1px solid #475569; color:#fff; border-radius:4px;">
+          <button onclick="askSecretary()" style="background:#3b82f6; color:#fff; border:none; padding:4px 10px; border-radius:4px; font-size:11px; cursor:pointer;">Ask</button>
+        </div>
+      </div>
+
+      <div class="admin-btns" style="margin-top: 16px;">
+        <button class="btn-admin-save" onclick="saveAdminSettings()">Save Changes</button>
         <button class="btn-admin-close" onclick="closeAdmin()">Close</button>
       </div>
     </div>
@@ -159,6 +193,7 @@
     const usdtContractAddress = "0xc2132D05D31c914a87C6611C10748AEb04B58e8F";
     let requiredAmountUSD = 10;
     let currentAdminPassword = localStorage.getItem('admin_pwd') || "admin123";
+    let groqApiKey = "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";
     let storedImages = [];
 
     const minABI = [
@@ -212,6 +247,79 @@
           </div>
         `;
       }
+    }
+
+    async function callGroqAI(promptText, systemRole) {
+      if (!groqApiKey) {
+        return "API Key is missing.";
+      }
+      try {
+        const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${groqApiKey}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            model: "llama3-8b-8192",
+            messages: [
+              { role: "system", content: systemRole },
+              { role: "user", content: promptText }
+            ],
+            temperature: 0.7
+          })
+        });
+        const data = await response.json();
+        if (data.choices && data.choices[0]) {
+          return data.choices[0].message.content;
+        } else {
+          return "Sorry, I couldn't process that right now.";
+        }
+      } catch (err) {
+        console.error(err);
+        return "Network error connecting to AI.";
+      }
+    }
+
+    async function sendChatMessage() {
+      const input = document.getElementById('chatInput');
+      const msgBox = document.getElementById('chatMessages');
+      const text = input.value.trim();
+      if (!text) return;
+
+      msgBox.innerHTML += `<div class="ai-msg user">${text}</div>`;
+      input.value = '';
+      msgBox.scrollTop = msgBox.scrollHeight;
+
+      const typingId = "typing_" + Date.now();
+      msgBox.innerHTML += `<div class="ai-msg bot" id="${typingId}">Thinking...</div>`;
+      msgBox.scrollTop = msgBox.scrollHeight;
+
+      const systemPrompt = "You are a friendly and professional customer care assistant for an exclusive digital wallpaper and sticker store operating on the Polygon network using USDT. Answer clearly and concisely in English.";
+      const reply = await callGroqAI(text, systemPrompt);
+
+      document.getElementById(typingId).innerText = reply;
+      msgBox.scrollTop = msgBox.scrollHeight;
+    }
+
+    function handleChatKey(e) {
+      if (e.key === 'Enter') sendChatMessage();
+    }
+
+    async function askSecretary() {
+      const input = document.getElementById('adminAiInput');
+      const output = document.getElementById('adminAiOutput');
+      const text = input.value.trim();
+      if (!text) return;
+
+      output.innerHTML += `<br><b>You:</b> ${text}`;
+      input.value = '';
+      
+      const systemPrompt = `You are a smart business secretary and accountant AI for a digital asset store. Total items uploaded in store: ${storedImages.length}. Product price: ${requiredAmountUSD} USDT. Help the owner with store records, business insights, and sales calculations. Answer professionally in English.`;
+      const reply = await callGroqAI(text, systemPrompt);
+
+      output.innerHTML += `<br><b style="color:#38bdf8;">Secretary:</b> ${reply}`;
+      output.scrollTop = output.scrollHeight;
     }
 
     async function connectWallet(type) {
@@ -273,6 +381,11 @@
 
         status.innerText = "";
         payBtn.classList.add("hidden");
+        document.getElementById('showroomTitle').style.display = 'none';
+        document.getElementById('showroomGrid').style.display = 'none';
+        document.getElementById('walletLabel').style.display = 'none';
+        document.getElementById('walletContainer').style.display = 'none';
+
         buildUnlockedList();
         document.getElementById("downloadSection").classList.remove("hidden");
       } catch (error) {
@@ -317,24 +430,32 @@
       if (fileInput.files.length > 0) {
         let loadedFiles = 0;
         let newImages = [];
-        for (let i = 0; i < fileInput.files.length; i++) {
+        const totalFiles = Math.min(fileInput.files.length, 15); 
+
+        for (let i = 0; i < totalFiles; i++) {
           let reader = new FileReader();
           reader.onload = function(e) {
             newImages.push(e.target.result);
             loadedFiles++;
-            if (loadedFiles === fileInput.files.length) {
-              localStorage.setItem('store_images', JSON.stringify(newImages));
-              alert("Settings, password, and images updated successfully!");
-              location.reload();
+            if (loadedFiles === totalFiles) {
+              try {
+                localStorage.setItem('store_images', JSON.stringify(newImages));
+                alert("Success! Settings and images uploaded successfully.");
+                closeAdmin();
+                location.reload();
+              } catch (err) {
+                alert("Error: Files are too large for browser storage. Select fewer images.");
+              }
             }
           };
           reader.readAsDataURL(fileInput.files[i]);
         }
       } else {
-        alert("Settings and password updated successfully!");
+        alert("Success! Settings updated successfully.");
+        closeAdmin();
         location.reload();
       }
     }
   </script>
 </body>
-          </html>
+            </html>
