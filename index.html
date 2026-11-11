@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Digital Asset Store</title>
-  <!-- Ethers.js Library -->
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -12,14 +11,17 @@
     .container { width: 100%; max-width: 480px; }
     .card { background: #151c2c; border: 1px solid #1e293b; border-radius: 16px; padding: 32px 24px; text-align: center; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5); }
     .badge { background: #3b82f6; color: #fff; font-size: 11px; font-weight: bold; padding: 4px 12px; border-radius: 20px; text-transform: uppercase; letter-spacing: 1px; }
-    h1 { font-size: 22px; margin-top: 14px; color: #ffffff; cursor: default; user-select: none; }
+    h1 { font-size: 22px; margin-top: 14px; color: #ffffff; }
     .description { font-size: 14px; color: #94a3b8; margin-top: 8px; line-height: 1.5; }
     .price-box { margin: 20px 0; background: #0f172a; padding: 16px; border-radius: 12px; border: 1px dashed #334155; }
     .price { font-size: 28px; font-weight: bold; color: #10b981; display: block; }
     .network-tag { font-size: 12px; color: #64748b; margin-top: 4px; display: block; }
     .wallet-display { font-size: 11px; color: #38bdf8; margin-top: 6px; word-break: break-all; background: #1e293b; padding: 6px; border-radius: 6px; }
+    
+    /* Showroom Preview Grid (3 Items) */
+    .preview-title { font-size: 13px; color: #94a3b8; margin-bottom: 8px; text-align: left; font-weight: bold; }
     .preview-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 20px; }
-    .preview-item { background: #1e293b; height: 60px; border-radius: 6px; font-size: 10px; color: #64748b; display: flex; align-items: center; justify-content: center; border: 1px solid #334155; }
+    .preview-item { background: #1e293b; height: 75px; border-radius: 6px; font-size: 11px; color: #64748b; display: flex; align-items: center; justify-content: center; border: 1px solid #334155; background-size: cover; background-position: center; }
     
     /* Wallet Selection Grid */
     .wallet-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 15px; }
@@ -32,17 +34,26 @@
     .btn-primary:disabled { background: #475569; cursor: not-allowed; }
     .status-text { font-size: 13px; color: #38bdf8; margin-top: 12px; }
     .hidden { display: none !important; }
-    .download-box { background: #064e3b; border: 1px solid #059669; border-radius: 12px; padding: 20px; margin-top: 20px; }
-    .icon-success { font-size: 30px; margin-bottom: 6px; }
-    .btn-success { display: block; background: #10b981; color: #fff; text-decoration: none; font-weight: bold; padding: 12px; border-radius: 6px; margin-top: 12px; text-align: center; }
+    
+    /* Unlocked Full Content Box */
+    .download-box { background: #064e3b; border: 1px solid #059669; border-radius: 12px; padding: 20px; margin-top: 20px; text-align: left; }
+    .icon-success { font-size: 30px; margin-bottom: 6px; text-align: center; }
+    .unlocked-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin: 12px 0; max-height: 240px; overflow-y: auto; }
+    .unlocked-item { background: #022c22; padding: 8px; border-radius: 6px; font-size: 11px; border: 1px solid #047857; display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; }
+    .unlocked-thumb { width: 100%; height: 60px; background-size: cover; background-position: center; border-radius: 4px; background-color: #034732; }
+    .unlocked-item a { color: #34d399; text-decoration: none; font-weight: bold; background: #065f46; padding: 4px 8px; border-radius: 4px; display: block; width: 100%; }
+
+    /* Bottom Admin Login Button */
+    .admin-footer-btn { margin-top: 20px; font-size: 12px; color: #64748b; background: none; border: none; cursor: pointer; text-decoration: underline; width: 100%; text-align: center; }
+    .admin-footer-btn:hover { color: #38bdf8; }
 
     /* Admin Modal */
     .admin-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-    .admin-card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 24px; width: 90%; max-width: 400px; text-align: left; }
+    .admin-card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 24px; width: 90%; max-width: 440px; text-align: left; max-height: 90vh; overflow-y: auto; }
     .admin-card h2 { font-size: 18px; margin-bottom: 16px; color: #38bdf8; }
     .admin-field { margin-bottom: 12px; }
     .admin-field label { display: block; font-size: 12px; color: #94a3b8; margin-bottom: 4px; }
-    .admin-field input { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #475569; background: #0f172a; color: #fff; font-size: 14px; }
+    .admin-field input { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #475569; background: #0f172a; color: #fff; font-size: 12px; }
     .admin-btns { display: flex; gap: 8px; margin-top: 16px; }
     .btn-admin-save { background: #10b981; color: #fff; border: none; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer; flex: 1; }
     .btn-admin-close { background: #64748b; color: #fff; border: none; padding: 10px; border-radius: 6px; cursor: pointer; }
@@ -53,10 +64,9 @@
   <div class="container">
     <div class="card">
       <span class="badge" id="productBadge">BATCH EXCLUSIVE</span>
-      <!-- Double-click here to open secret Admin Panel -->
-      <h1 id="productTitle" ondblclick="openAdmin()">Mega HD Wallpapers & Stickers</h1>
+      <h1 id="productTitle">Mega HD Wallpapers & Stickers</h1>
       <p class="description" id="productDesc">
-        Get the complete collection of HD wallpapers and stickers for mobile and PC. One-time payment, instant access.
+        Get the complete collection of HD wallpapers and stickers. One-time payment, instant unlock for all items.
       </p>
 
       <div class="price-box">
@@ -65,10 +75,12 @@
         <span class="wallet-display">Receiver: <span id="lblWallet">0xE7f2e19705F23BE15637170135b34459F397cbb8</span></span>
       </div>
 
+      <!-- Showroom Preview (3 Sample Items) -->
+      <div class="preview-title">Showroom Previews (Sample 3 Items):</div>
       <div class="preview-grid">
-        <div class="preview-item">Item 1</div>
-        <div class="preview-item">Item 2</div>
-        <div class="preview-item">Item 3</div>
+        <div class="preview-item" id="prev0">Sample 1</div>
+        <div class="preview-item" id="prev1">Sample 2</div>
+        <div class="preview-item" id="prev2">Sample 3</div>
       </div>
 
       <!-- Wallet Icons Selection -->
@@ -94,22 +106,23 @@
 
       <p id="statusMessage" class="status-text"></p>
 
-      <!-- Instant Download Box -->
+      <!-- Unlocked Content Box -->
       <div id="downloadSection" class="download-box hidden">
         <div class="icon-success">✅</div>
-        <h3>Payment Verified!</h3>
-        <p>Exact amount received. Your digital asset is ready:</p>
-        <a id="downloadBtn" href="#" target="_blank" class="btn-success">
-          📥 Download Your Files Here
-        </a>
+        <h3 style="text-align: center; color: #34d399;">Payment Verified!</h3>
+        <p style="font-size: 12px; text-align: center; margin-bottom: 10px;">All your items are unlocked below:</p>
+        <div class="unlocked-grid" id="unlockedList"></div>
       </div>
+
+      <!-- Admin Login Button -->
+      <button class="admin-footer-btn" onclick="openAdmin()">⚙️ Owner Admin Login</button>
     </div>
   </div>
 
   <!-- Admin Modal -->
   <div id="adminModal" class="admin-modal hidden">
     <div class="admin-card">
-      <h2>⚙️ Owner Settings</h2>
+      <h2>⚙️ Owner Upload Panel</h2>
       <div class="admin-field">
         <label>Product Title</label>
         <input type="text" id="inputTitle" value="Mega HD Wallpapers & Stickers">
@@ -127,11 +140,15 @@
         <input type="text" id="inputWallet" value="0xE7f2e19705F23BE15637170135b34459F397cbb8">
       </div>
       <div class="admin-field">
-        <label>Download URL</label>
-        <input type="text" id="inputUrl" value="#" placeholder="Paste your download link here">
+        <label>New Admin Password (Leave blank to keep current)</label>
+        <input type="password" id="inputPassword" placeholder="Enter new admin password">
+      </div>
+      <div class="admin-field">
+        <label>Upload Images (Select up to 20 images from your device)</label>
+        <input type="file" id="imageFiles" multiple accept="image/*" style="color: #fff;">
       </div>
       <div class="admin-btns">
-        <button class="btn-admin-save" onclick="saveSettings()">Save Changes</button>
+        <button class="btn-admin-save" onclick="saveAdminSettings()">Save & Upload</button>
         <button class="btn-admin-close" onclick="closeAdmin()">Close</button>
       </div>
     </div>
@@ -141,11 +158,11 @@
     let sellerWallet = "0xE7f2e19705F23BE15637170135b34459F397cbb8";
     const usdtContractAddress = "0xc2132D05D31c914a87C6611C10748AEb04B58e8F";
     let requiredAmountUSD = 10;
-    const adminPassword = "admin123";
+    let currentAdminPassword = localStorage.getItem('admin_pwd') || "admin123";
+    let storedImages = [];
 
     const minABI = [
-      "function transfer(address to, uint amount) returns (bool)",
-      "function balanceOf(address account) view returns (uint256)"
+      "function transfer(address to, uint amount) returns (bool)"
     ];
 
     window.onload = function() {
@@ -153,7 +170,7 @@
       const savedDesc = localStorage.getItem('store_desc');
       const savedPrice = localStorage.getItem('store_price');
       const savedWallet = localStorage.getItem('store_wallet');
-      const savedUrl = localStorage.getItem('store_url');
+      const savedImagesData = localStorage.getItem('store_images');
 
       if (savedTitle) document.getElementById('productTitle').innerText = savedTitle;
       if (savedDesc) document.getElementById('productDesc').innerText = savedDesc;
@@ -166,8 +183,36 @@
         sellerWallet = savedWallet;
         document.getElementById('lblWallet').innerText = savedWallet;
       }
-      if (savedUrl) document.getElementById('downloadBtn').setAttribute('href', savedUrl);
+      if (savedImagesData) {
+        storedImages = JSON.parse(savedImagesData);
+      }
+
+      updateShowroom();
     };
+
+    function updateShowroom() {
+      for(let i=0; i<3; i++) {
+        if(storedImages[i]) {
+          document.getElementById('prev' + i).style.backgroundImage = `url('${storedImages[i]}')`;
+          document.getElementById('prev' + i).innerText = '';
+        }
+      }
+    }
+
+    function buildUnlockedList() {
+      const listContainer = document.getElementById('unlockedList');
+      listContainer.innerHTML = '';
+      for(let i=0; i<storedImages.length; i++) {
+        let imgData = storedImages[i];
+        listContainer.innerHTML += `
+          <div class="unlocked-item">
+            <div class="unlocked-thumb" style="background-image: url('${imgData}')"></div>
+            <span>Item ${i+1}</span>
+            <a href="${imgData}" download="wallpaper_${i+1}.jpg">Download</a>
+          </div>
+        `;
+      }
+    }
 
     async function connectWallet(type) {
       const status = document.getElementById("statusMessage");
@@ -186,15 +231,8 @@
 
       try {
         status.innerText = "Connecting to your wallet...";
-        
-        let provider;
-        if (window.ethereum) {
-          provider = new ethers.providers.Web3Provider(window.ethereum);
-          await provider.send("eth_requestAccounts", []);
-        } else {
-          status.innerHTML = "<span style='color:#ef4444;'>Please open this page inside your Web3 wallet browser!</span>";
-          return;
-        }
+        let provider = new ethers.providers.Web3Provider(window.ethereum);
+        await provider.send("eth_requestAccounts", []);
 
         const network = await provider.getNetwork();
         if (network.chainId !== 137) {
@@ -204,7 +242,6 @@
 
         status.innerText = "Wallet connected! Click below to pay exact amount.";
         payBtn.classList.remove("hidden");
-
       } catch (error) {
         console.error(error);
         status.innerHTML = "<span style='color:#ef4444;'>Connection failed or cancelled.</span>";
@@ -215,6 +252,11 @@
       const status = document.getElementById("statusMessage");
       const payBtn = document.getElementById("payBtn");
 
+      if(storedImages.length === 0) {
+        status.innerHTML = "<span style='color:#ef4444;'>Error: No products uploaded by admin yet!</span>";
+        return;
+      }
+
       try {
         status.innerText = `Please confirm the exact payment of ${requiredAmountUSD} USDT in your wallet...`;
         payBtn.disabled = true;
@@ -223,9 +265,7 @@
         const signer = provider.getSigner();
         const usdtContract = new ethers.Contract(usdtContractAddress, minABI, signer);
         
-        // Strict exact amount check configuration (6 decimals for Polygon USDT)
         const amount = ethers.utils.parseUnits(requiredAmountUSD.toString(), 6);
-        
         const tx = await usdtContract.transfer(sellerWallet, amount);
         
         status.innerText = "Verifying exact transaction on Polygon Blockchain...";
@@ -233,8 +273,8 @@
 
         status.innerText = "";
         payBtn.classList.add("hidden");
+        buildUnlockedList();
         document.getElementById("downloadSection").classList.remove("hidden");
-
       } catch (error) {
         console.error(error);
         payBtn.disabled = false;
@@ -244,9 +284,10 @@
 
     function openAdmin() {
       const pwd = prompt("Enter Owner Password:");
-      if (pwd === adminPassword) {
+      if (pwd === currentAdminPassword) {
         document.getElementById('adminModal').classList.remove('hidden');
         document.getElementById('inputWallet').value = sellerWallet;
+        document.getElementById('inputPassword').value = '';
       } else if (pwd !== null) {
         alert("Incorrect password!");
       }
@@ -256,20 +297,43 @@
       document.getElementById('adminModal').classList.add('hidden');
     }
 
-    function saveSettings() {
+    function saveAdminSettings() {
       const title = document.getElementById('inputTitle').value;
       const desc = document.getElementById('inputDesc').value;
       const price = document.getElementById('inputPrice').value;
       const wallet = document.getElementById('inputWallet').value;
-      const url = document.getElementById('inputUrl').value;
+      const newPwd = document.getElementById('inputPassword').value;
+      const fileInput = document.getElementById('imageFiles');
 
       localStorage.setItem('store_title', title);
       localStorage.setItem('store_desc', desc);
       localStorage.setItem('store_price', price);
       localStorage.setItem('store_wallet', wallet);
-      localStorage.setItem('store_url', url);
 
-      location.reload();
+      if (newPwd && newPwd.trim() !== '') {
+        localStorage.setItem('admin_pwd', newPwd.trim());
+      }
+
+      if (fileInput.files.length > 0) {
+        let loadedFiles = 0;
+        let newImages = [];
+        for (let i = 0; i < fileInput.files.length; i++) {
+          let reader = new FileReader();
+          reader.onload = function(e) {
+            newImages.push(e.target.result);
+            loadedFiles++;
+            if (loadedFiles === fileInput.files.length) {
+              localStorage.setItem('store_images', JSON.stringify(newImages));
+              alert("Settings, password, and images updated successfully!");
+              location.reload();
+            }
+          };
+          reader.readAsDataURL(fileInput.files[i]);
+        }
+      } else {
+        alert("Settings and password updated successfully!");
+        location.reload();
+      }
     }
   </script>
 </body>
