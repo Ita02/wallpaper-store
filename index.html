@@ -212,9 +212,6 @@
       "function transfer(address to, uint amount) returns (bool)"
     ];
 
-    // ==========================================
-    // INDEXED-DB STORAGE (Hifadhi Kubwa)
-    // ==========================================
     function openDatabase() {
       return new Promise((resolve, reject) => {
         const request = indexedDB.open("WallpaperStoreDB", 1);
@@ -370,26 +367,27 @@
       if (!text) return;
 
       msgBox.innerHTML += `<div class="ai-msg user">${input.value}</div>`;
-      const originalText = input.value;
       input.value = '';
       msgBox.scrollTop = msgBox.scrollHeight;
 
       setTimeout(() => {
-        let reply = "I'm here to help! You can purchase our complete bundle of wallpapers instantly using USDT on the Polygon network.";
+        let reply = "I'm happy to help! You can get our entire collection instantly by making a secure payment in USDT on the Polygon network.";
         
-        if (text.includes("how much") || text.includes("price") / text.includes("cost") || text.includes("beit")) {
-          reply = `Our complete collection costs ${requiredAmountUSD} USDT in a one-time payment.`;
-        } else if (text.includes("how many") || text.includes("many") || text.includes("ngapi")) {
-          reply = `We currently have ${storedImages.length} exclusive items available in this bundle.`;
-        } else if (text.includes("pay")  || text.includes("buy") || text.includes("lipwa")) {
-          reply = "To buy, simply connect your MetaMask or Trust Wallet on Polygon network and click the pay button!";
-        } else if (text.includes("hi") || text.includes("hello") || text.includes("habari")) {
-          reply = "Hello! Welcome to our digital store. Let me know if you need any help with our wallpapers or USDT payment.";
+        if (text.includes("how much") || text.includes("price") || text.includes("cost") || text.includes("beit") || text.includes("each") || text.includes("per")) {
+          reply = `The entire bundle of items is offered together as a complete package for ${requiredAmountUSD} USDT total.`;
+        } else if (text.includes("how many") || text.includes("many") || text.includes("ngapi") || text.includes("number")) {
+          reply = `We currently have ${storedImages.length} HD items loaded into the store collection.`;
+        } else if (text.includes("pay") || text.includes("buy") || text.includes("lipwa") || text.includes("purchase")) {
+          reply = "To purchase, connect your preferred wallet (MetaMask or Trust Wallet) on the Polygon network, then click the pay button.";
+        } else if (text.includes("hi") || text.includes("hello") || text.includes("habari") || text.includes("hey")) {
+          reply = "Hello there! Welcome to our digital store. Feel free to ask if you have any questions about our wallpapers.";
+        } else if (text.includes("thank") || text.includes("asante")) {
+          reply = "You're very welcome! Let me know if you need anything else.";
         }
 
         msgBox.innerHTML += `<div class="ai-msg bot">${reply}</div>`;
         msgBox.scrollTop = msgBox.scrollHeight;
-      }, 500);
+      }, 400);
     }
 
     function handleChatKey(e) {
@@ -415,14 +413,16 @@
       setTimeout(() => {
         let reply = `Boss, everything is running smoothly. We have ${storedImages.length} items uploaded, priced at ${requiredAmountUSD} USDT.`;
 
-        if (text.includes("how many") || text.includes("upload") || text.includes("picha") || text.includes("count")) {
-          reply = `Boss, we currently have exactly ${storedImages.length} products uploaded in the store.`;
-        } else if (text.includes("sales") || text.includes("revenue") || text.includes("mauzo") || text.includes("earn")) {
-          reply = `We have recorded ${salesCount} completed sales so far, generating a total revenue of ${totalRevenue} USDT.`;
-        } else if (text.includes("price") || text.includes("bei")) {
-          reply = `The bundle price is currently set at ${requiredAmountUSD} USDT.`;
-        } else if (text.includes("wallet") || text.includes("address")) {
+        if (text.includes("how many") || text.includes("upload") || text.includes("picha") || text.includes("count") || text.includes("have")) {
+          reply = `Boss, we currently have ${storedImages.length} items uploaded in the store right now.`;
+        } else if (text.includes("sales") || text.includes("revenue") || text.includes("mauzo") || text.includes("earn") || text.includes("sold")) {
+          reply = `We have recorded ${salesCount} sales so far, making a total revenue of ${totalRevenue} USDT.`;
+        } else if (text.includes("price") || text.includes("bei") || text.includes("cost") || text.includes("each") || text.includes("per")) {
+          reply = `The package price is set at ${requiredAmountUSD} USDT for the whole bundle.`;
+        } else if (text.includes("wallet") || text.includes("address") || text.includes("receiver")) {
           reply = `Your receiver wallet address is: ${sellerWallet}`;
+        } else if (text.includes("hi") || text.includes("hello") || text.includes("boss") || text.includes("habari")) {
+          reply = `Hello boss! Ready to assist you. We have ${storedImages.length} items in the store right now.`;
         }
 
         output.innerHTML += `<div style="margin-top:4px; color:#38bdf8;"><b>Secretary:</b> ${reply}</div>`;
@@ -617,4 +617,4 @@
     }
   </script>
 </body>
-          </html>
+  </html>
