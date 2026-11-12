@@ -20,7 +20,7 @@
     
     /* Showroom Preview Grid (All Items Showcase) */
     .preview-title { font-size: 13px; color: #94a3b8; margin-bottom: 8px; text-align: left; font-weight: bold; }
-    .preview-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 20px; max-height: 200px; overflow-y: auto; }
+    .preview-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 20px; max-height: 220px; overflow-y: auto; }
     .preview-item { background: #1e293b; height: 75px; border-radius: 6px; font-size: 11px; color: #64748b; display: flex; align-items: center; justify-content: center; border: 1px solid #334155; background-size: cover; background-position: center; }
     
     /* Wallet Selection Grid */
@@ -167,7 +167,7 @@
         <input type="password" id="inputPassword" placeholder="Enter new admin password">
       </div>
       <div class="admin-field">
-        <label>Upload More Images (Appends to existing collection)</label>
+        <label>Upload Images (Select up to 20 images at once)</label>
         <input type="file" id="imageFiles" multiple accept="image/*" style="color: #fff;">
       </div>
       
@@ -239,7 +239,7 @@
       const grid = document.getElementById('showroomGrid');
       if (storedImages.length > 0) {
         grid.innerHTML = '';
-        storedImages.forEach((img, index) => {
+        storedImages.forEach((img) => {
           grid.innerHTML += `<div class="preview-item" style="background-image: url('${img}')"></div>`;
         });
       }
@@ -439,7 +439,44 @@
       document.getElementById('adminModal').classList.add('hidden');
     }
 
-    function saveAdminSettings() {
+    // Kazi ya kubana ukubwa wa picha (Image Compressor) ili zitoshee zote 20
+    function compressImage(file) {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const img = new Image();
+          img.onload = function() {
+            const canvas = document.createElement('canvas');
+            const MAX_WIDTH = 800;
+            const MAX_HEIGHT = 800;
+            let width = img.width;
+            let height = img.height;
+
+            if (width > height) {
+              if (width > MAX_WIDTH) {
+                height *= MAX_WIDTH / width;
+                width = MAX_WIDTH;
+              }
+            } else {
+              if (height > MAX_HEIGHT) {
+                width *= MAX_HEIGHT / height;
+                height = MAX_HEIGHT;
+              }
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+            resolve(canvas.toDataURL('image/jpeg', 0.7)); // Inaminya ukubwa ubaki mzuri HD lakini mwepesi
+          };
+          img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function saveAdminSettings() {
       const title = document.getElementById('inputTitle').value;
       const desc = document.getElementById('inputDesc').value;
       const price = document.getElementById('inputPrice').value;
@@ -457,29 +494,23 @@
       }
 
       if (fileInput.files.length > 0) {
-        let loadedFiles = 0;
+        alert("Compressing and uploading images, please wait...");
         let newUploadedImages = [];
-        const totalFiles = Math.min(fileInput.files.length, 15); 
+        
+        for (let i = 0; i < fileInput.files.length; i++) {
+          let compressedData = await compressImage(fileInput.files[i]);
+          newUploadedImages.push(compressedData);
+        }
 
-        for (let i = 0; i < totalFiles; i++) {
-          let reader = new FileReader();
-          reader.onload = function(e) {
-            newUploadedImages.push(e.target.result);
-            loadedFiles++;
-            if (loadedFiles === totalFiles) {
-              try {
-                // Tunazijaza (append) badala ya kufuta za zamani
-                let combinedImages = storedImages.concat(newUploadedImages);
-                localStorage.setItem('store_images', JSON.stringify(combinedImages));
-                alert("Success! New images appended successfully.");
-                closeAdmin();
-                location.reload();
-              } catch (err) {
-                alert("Error: Storage full. Please upload fewer images.");
-              }
-            }
-          };
-          reader.readAsDataURL(fileInput.files[i]);
+        try {
+          // Tunaongeza (append) picha mpya juu ya zile za zamani bila kufuta
+          let combinedImages = storedImages.concat(newUploadedImages);
+          localStorage.setItem('store_images', JSON.stringify(combinedImages));
+          alert("Success! Images compressed and added to store.");
+          closeAdmin();
+          location.reload();
+        } catch (err) {
+          alert("Error: Storage is completely full. Try uploading in smaller batches.");
         }
       } else {
         alert("Success! Settings updated successfully.");
