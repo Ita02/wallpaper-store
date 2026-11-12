@@ -65,6 +65,12 @@
     .admin-field { margin-bottom: 12px; }
     .admin-field label { display: block; font-size: 12px; color: #94a3b8; margin-bottom: 4px; }
     .admin-field input { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #475569; background: #0f172a; color: #fff; font-size: 12px; }
+    
+    /* Admin Image Management List */
+    .admin-img-list { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; max-height: 120px; overflow-y: auto; background: #0f172a; padding: 8px; border-radius: 6px; border: 1px solid #475569; margin-top: 4px; }
+    .admin-img-thumb { position: relative; height: 55px; background-size: cover; background-position: center; border-radius: 4px; border: 1px solid #334155; }
+    .admin-del-btn { position: absolute; top: 2px; right: 2px; background: #ef4444; color: #fff; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+
     .admin-btns { display: flex; gap: 8px; margin-top: 16px; }
     .btn-admin-save { background: #10b981; color: #fff; border: none; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer; flex: 1; }
     .btn-admin-close { background: #64748b; color: #fff; border: none; padding: 10px; border-radius: 6px; cursor: pointer; }
@@ -166,8 +172,17 @@
         <label>New Admin Password (Leave blank to keep current)</label>
         <input type="password" id="inputPassword" placeholder="Enter new admin password">
       </div>
+      
+      <!-- Existing Images Management List -->
       <div class="admin-field">
-        <label>Upload Images (Select up to 20 images at once)</label>
+        <label>Manage Existing Images (Click X to delete any image)</label>
+        <div class="admin-img-list" id="adminImgList">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+
+      <div class="admin-field">
+        <label>Upload More Images (Appends new items)</label>
         <input type="file" id="imageFiles" multiple accept="image/*" style="color: #fff;">
       </div>
       
@@ -242,6 +257,31 @@
         storedImages.forEach((img) => {
           grid.innerHTML += `<div class="preview-item" style="background-image: url('${img}')"></div>`;
         });
+      }
+    }
+
+    function renderAdminImageList() {
+      const listContainer = document.getElementById('adminImgList');
+      listContainer.innerHTML = '';
+      if (storedImages.length === 0) {
+        listContainer.innerHTML = '<span style="font-size:11px; color:#64748b; grid-column: span 4; text-align:center; padding:10px;">No images uploaded yet.</span>';
+        return;
+      }
+      storedImages.forEach((img, index) => {
+        listContainer.innerHTML += `
+          <div class="admin-img-thumb" style="background-image: url('${img}')">
+            <button class="admin-del-btn" onclick="deleteStoredImage(${index})" title="Delete image">✕</button>
+          </div>
+        `;
+      });
+    }
+
+    function deleteStoredImage(index) {
+      if (confirm("Are you sure you want to delete this image?")) {
+        storedImages.splice(index, 1);
+        localStorage.setItem('store_images', JSON.stringify(storedImages));
+        renderAdminImageList();
+        updateShowroom();
       }
     }
 
@@ -430,6 +470,7 @@
         document.getElementById('adminModal').classList.remove('hidden');
         document.getElementById('inputWallet').value = sellerWallet;
         document.getElementById('inputPassword').value = '';
+        renderAdminImageList();
       } else if (pwd !== null) {
         alert("Incorrect password!");
       }
@@ -439,7 +480,6 @@
       document.getElementById('adminModal').classList.add('hidden');
     }
 
-    // Kazi ya kubana ukubwa wa picha (Image Compressor) ili zitoshee zote 20
     function compressImage(file) {
       return new Promise((resolve) => {
         const reader = new FileReader();
@@ -468,7 +508,7 @@
             canvas.height = height;
             const ctx = canvas.getContext('2d');
             ctx.drawImage(img, 0, 0, width, height);
-            resolve(canvas.toDataURL('image/jpeg', 0.7)); // Inaminya ukubwa ubaki mzuri HD lakini mwepesi
+            resolve(canvas.toDataURL('image/jpeg', 0.7));
           };
           img.src = e.target.result;
         };
@@ -503,16 +543,16 @@
         }
 
         try {
-          // Tunaongeza (append) picha mpya juu ya zile za zamani bila kufuta
           let combinedImages = storedImages.concat(newUploadedImages);
           localStorage.setItem('store_images', JSON.stringify(combinedImages));
           alert("Success! Images compressed and added to store.");
           closeAdmin();
           location.reload();
         } catch (err) {
-          alert("Error: Storage is completely full. Try uploading in smaller batches.");
+          alert("Error: Storage is completely full. Try uploading fewer images.");
         }
       } else {
+        localStorage.setItem('store_images', JSON.stringify(storedImages));
         alert("Success! Settings updated successfully.");
         closeAdmin();
         location.reload();
@@ -520,4 +560,4 @@
     }
   </script>
 </body>
-  </html>
+</html>
