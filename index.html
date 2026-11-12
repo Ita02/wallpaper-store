@@ -20,7 +20,7 @@
     
     /* Showroom Preview Grid (All Items Showcase) */
     .preview-title { font-size: 13px; color: #94a3b8; margin-bottom: 8px; text-align: left; font-weight: bold; }
-    .preview-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 20px; max-height: 220px; overflow-y: auto; }
+    .preview-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 20px; max-height: 240px; overflow-y: auto; }
     .preview-item { background: #1e293b; height: 75px; border-radius: 6px; font-size: 11px; color: #64748b; display: flex; align-items: center; justify-content: center; border: 1px solid #334155; background-size: cover; background-position: center; }
     
     /* Wallet Selection Grid */
@@ -67,7 +67,7 @@
     .admin-field input { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #475569; background: #0f172a; color: #fff; font-size: 12px; }
     
     /* Admin Image Management List */
-    .admin-img-list { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; max-height: 120px; overflow-y: auto; background: #0f172a; padding: 8px; border-radius: 6px; border: 1px solid #475569; margin-top: 4px; }
+    .admin-img-list { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; max-height: 140px; overflow-y: auto; background: #0f172a; padding: 8px; border-radius: 6px; border: 1px solid #475569; margin-top: 4px; }
     .admin-img-thumb { position: relative; height: 55px; background-size: cover; background-position: center; border-radius: 4px; border: 1px solid #334155; }
     .admin-del-btn { position: absolute; top: 2px; right: 2px; background: #ef4444; color: #fff; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold; }
 
@@ -93,7 +93,7 @@
       </div>
 
       <!-- Showroom Preview Grid (All Uploaded Items Showcase) -->
-      <div class="preview-title" id="showroomTitle">Showroom Previews (All Items):</div>
+      <div class="preview-title" id="showroomTitle">Showroom Previews (<span id="itemCountBadge">0</span> Items):</div>
       <div class="preview-grid" id="showroomGrid">
         <div class="preview-item">Sample 1</div>
         <div class="preview-item">Sample 2</div>
@@ -175,21 +175,19 @@
       
       <!-- Existing Images Management List -->
       <div class="admin-field">
-        <label>Manage Existing Images (Click X to delete any image)</label>
-        <div class="admin-img-list" id="adminImgList">
-          <!-- Populated dynamically -->
-        </div>
+        <label>Manage Existing Images (<span id="adminTotalCount">0</span> uploaded - Click X to delete)</label>
+        <div class="admin-img-list" id="adminImgList"></div>
       </div>
 
       <div class="admin-field">
-        <label>Upload More Images (Appends new items)</label>
+        <label>Upload More Images (Supports 20+ HD images easily)</label>
         <input type="file" id="imageFiles" multiple accept="image/*" style="color: #fff;">
       </div>
       
       <!-- Secretary AI Box Inside Admin -->
       <div style="margin-top: 15px; background: #0f172a; padding: 10px; border-radius: 8px; border: 1px solid #334155;">
         <label style="color: #38bdf8; font-weight: bold; margin-bottom: 6px; display: block;">🤖 AI Secretary Panel Assistant</label>
-        <div id="adminAiOutput" style="font-size: 11px; color: #94a3b8; margin-bottom: 8px; max-height: 80px; overflow-y: auto;">Hello boss! Ask me about your store status or sales tips.</div>
+        <div id="adminAiOutput" style="font-size: 11px; color: #cbd5e1; margin-bottom: 8px; max-height: 110px; overflow-y: auto; line-height: 1.4;">Hi! I'm your store secretary. Ask me about our inventory count, pricing, or sales records anytime.</div>
         <div style="display: flex; gap: 6px;">
           <input type="text" id="adminAiInput" placeholder="Ask secretary..." style="flex:1; padding:6px; font-size:11px; background:#1e293b; border:1px solid #475569; color:#fff; border-radius:4px;" onkeypress="handleSecretaryKey(event)">
           <button onclick="askSecretary()" style="background:#3b82f6; color:#fff; border:none; padding:4px 10px; border-radius:4px; font-size:11px; cursor:pointer;">Ask</button>
@@ -197,7 +195,7 @@
       </div>
 
       <div class="admin-btns" style="margin-top: 16px;">
-        <button class="btn-admin-save" onclick="saveAdminSettings()">Save Changes</button>
+        <button class="btn-admin-save" id="saveAdminBtn" onclick="saveAdminSettings()">Save Changes</button>
         <button class="btn-admin-close" onclick="closeAdmin()">Close</button>
       </div>
     </div>
@@ -211,57 +209,130 @@
     let groqApiKey = "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";
     let storedImages = [];
 
-    let chatHistory = [
-      { role: "system", content: "You are a natural, warm, and professional human customer support assistant for a digital wallpaper and sticker store operating on Polygon USDT. Speak naturally like a real human. Never repeat rigid templates or canned robotic phrases. Keep answers conversational, helpful, and concise." },
-      { role: "assistant", content: "Hello! Welcome to our digital store. How can I assist you with our HD wallpapers or USDT payment today?" }
-    ];
+    // Model mpya ya Groq inayofanya kazi kwa kasi na ufasaha
+    const GROQ_MODEL = "llama-3.1-8b-instant";
 
-    let secretaryHistory = [
-      { role: "system", content: "You are a smart, friendly, and helpful human business secretary and accountant AI for the store owner. Speak naturally and professionally like a real assistant." },
-      { role: "assistant", content: "Hello boss! I'm ready to help you manage store records, check inventory, or assist with sales insights." }
-    ];
+    let chatHistory = [];
+    let secretaryHistory = [];
 
     const minABI = [
       "function transfer(address to, uint amount) returns (bool)"
     ];
 
-    window.onload = function() {
+    // ==========================================
+    // INDEXED-DB STORAGE (Hifadhi Kubwa ya 500MB+)
+    // ==========================================
+    function openDatabase() {
+      return new Promise((resolve, reject) => {
+        const request = indexedDB.open("WallpaperStoreDB", 1);
+        request.onupgradeneeded = function(e) {
+          const db = e.target.result;
+          if (!db.objectStoreNames.contains("images")) {
+            db.createObjectStore("images", { keyPath: "id" });
+          }
+        };
+        request.onsuccess = function(e) {
+          resolve(e.target.result);
+        };
+        request.onerror = function(e) {
+          reject(e.target.error);
+        };
+      });
+    }
+
+    async function loadImagesFromDB() {
+      try {
+        const db = await openDatabase();
+        return new Promise((resolve) => {
+          const tx = db.transaction("images", "readonly");
+          const store = tx.objectStore("images");
+          const req = store.get("all_products");
+          req.onsuccess = function() {
+            if (req.result && req.result.list) {
+              resolve(req.result.list);
+            } else {
+              // Kama kuna picha za zamani kwenye localStorage, zihamishie huku
+              const oldData = localStorage.getItem('store_images');
+              if (oldData) {
+                const parsed = JSON.parse(oldData);
+                localStorage.removeItem('store_images'); // Safisha localStorage
+                saveImagesToDB(parsed).then(() => resolve(parsed));
+              } else {
+                resolve([]);
+              }
+            }
+          };
+          req.onerror = () => resolve([]);
+        });
+      } catch (e) {
+        return [];
+      }
+    }
+
+    async function saveImagesToDB(imagesArray) {
+      const db = await openDatabase();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction("images", "readwrite");
+        const store = tx.objectStore("images");
+        const req = store.put({ id: "all_products", list: imagesArray });
+        req.onsuccess = () => resolve(true);
+        req.onerror = (e) => reject(e.target.error);
+      });
+    }
+
+    // ==========================================
+    // Kuanzisha Duka
+    // ==========================================
+    window.onload = async function() {
       const savedTitle = localStorage.getItem('store_title');
       const savedDesc = localStorage.getItem('store_desc');
       const savedPrice = localStorage.getItem('store_price');
       const savedWallet = localStorage.getItem('store_wallet');
-      const savedImagesData = localStorage.getItem('store_images');
 
-      if (savedTitle) document.getElementById('productTitle').innerText = savedTitle;
-      if (savedDesc) document.getElementById('productDesc').innerText = savedDesc;
+      if (savedTitle) {
+        document.getElementById('productTitle').innerText = savedTitle;
+        document.getElementById('inputTitle').value = savedTitle;
+      }
+      if (savedDesc) {
+        document.getElementById('productDesc').innerText = savedDesc;
+        document.getElementById('inputDesc').value = savedDesc;
+      }
       if (savedPrice) {
         requiredAmountUSD = parseFloat(savedPrice);
         document.getElementById('displayPrice').innerText = savedPrice + " USDT";
         document.getElementById('payBtn').innerText = "Pay " + savedPrice + " USDT Exact";
+        document.getElementById('inputPrice').value = savedPrice;
       }
       if (savedWallet) {
         sellerWallet = savedWallet;
         document.getElementById('lblWallet').innerText = savedWallet;
-      }
-      if (savedImagesData) {
-        storedImages = JSON.parse(savedImagesData);
+        document.getElementById('inputWallet').value = savedWallet;
       }
 
+      storedImages = await loadImagesFromDB();
       updateShowroom();
     };
 
     function updateShowroom() {
       const grid = document.getElementById('showroomGrid');
+      document.getElementById('itemCountBadge').innerText = storedImages.length;
       if (storedImages.length > 0) {
         grid.innerHTML = '';
         storedImages.forEach((img) => {
           grid.innerHTML += `<div class="preview-item" style="background-image: url('${img}')"></div>`;
         });
+      } else {
+        grid.innerHTML = `
+          <div class="preview-item">Sample 1</div>
+          <div class="preview-item">Sample 2</div>
+          <div class="preview-item">Sample 3</div>
+        `;
       }
     }
 
     function renderAdminImageList() {
       const listContainer = document.getElementById('adminImgList');
+      document.getElementById('adminTotalCount').innerText = storedImages.length;
       listContainer.innerHTML = '';
       if (storedImages.length === 0) {
         listContainer.innerHTML = '<span style="font-size:11px; color:#64748b; grid-column: span 4; text-align:center; padding:10px;">No images uploaded yet.</span>';
@@ -276,10 +347,10 @@
       });
     }
 
-    function deleteStoredImage(index) {
+    async function deleteStoredImage(index) {
       if (confirm("Are you sure you want to delete this image?")) {
         storedImages.splice(index, 1);
-        localStorage.setItem('store_images', JSON.stringify(storedImages));
+        await saveImagesToDB(storedImages);
         renderAdminImageList();
         updateShowroom();
       }
@@ -300,6 +371,9 @@
       }
     }
 
+    // ==========================================
+    // AI CUSTOMER CARE (Binadamu wa Kawaida)
+    // ==========================================
     async function sendChatMessage() {
       const input = document.getElementById('chatInput');
       const msgBox = document.getElementById('chatMessages');
@@ -310,10 +384,20 @@
       input.value = '';
       msgBox.scrollTop = msgBox.scrollHeight;
 
+      const storeInfo = storedImages.length === 0 
+        ? "The store currently has 0 items uploaded, so let customers know politely that new HD wallpapers and stickers are coming very soon." 
+        : `The store currently has ${storedImages.length} exclusive HD wallpapers & stickers available in one complete bundle for ${requiredAmountUSD} USDT on the Polygon network.`;
+
+      const systemPrompt = {
+        role: "system",
+        content: `You are a friendly, natural human customer support agent working at an online digital wallpaper and sticker store. ${storeInfo} Talk like a real, polite person—warm, casual, clear, and concise in English. Never sound like a robot, never mention being an AI, and never repeat yourself.`
+      };
+
       chatHistory.push({ role: "user", content: text });
+      if (chatHistory.length > 10) chatHistory = chatHistory.slice(-10);
 
       const typingId = "typing_" + Date.now();
-      msgBox.innerHTML += `<div class="ai-msg bot" id="${typingId}">...</div>`;
+      msgBox.innerHTML += `<div class="ai-msg bot" id="${typingId}">Typing...</div>`;
       msgBox.scrollTop = msgBox.scrollHeight;
 
       try {
@@ -324,23 +408,24 @@
             "Content-Type": "application/json"
           },
           body: JSON.stringify({
-            model: "llama3-8b-8192",
-            messages: chatHistory,
-            temperature: 0.7
+            model: GROQ_MODEL,
+            messages: [systemPrompt, ...chatHistory],
+            temperature: 0.75,
+            max_tokens: 200
           })
         });
 
         const data = await response.json();
         if (data.choices && data.choices[0]) {
-          const reply = data.choices[0].message.content;
+          const reply = data.choices[0].message.content.trim();
           document.getElementById(typingId).innerText = reply;
           chatHistory.push({ role: "assistant", content: reply });
         } else {
-          document.getElementById(typingId).innerText = "I'm here! Feel free to ask anything about our store.";
+          document.getElementById(typingId).innerText = "Hey there! How can I help you with our wallpaper bundle today?";
         }
       } catch (err) {
         console.error(err);
-        document.getElementById(typingId).innerText = "Connection issue. Please try again in a moment.";
+        document.getElementById(typingId).innerText = "Sorry, my connection flickered for a second. Could you say that again?";
       }
       msgBox.scrollTop = msgBox.scrollHeight;
     }
@@ -349,16 +434,39 @@
       if (e.key === 'Enter') sendChatMessage();
     }
 
+    // ==========================================
+    // AI SECRETARY (Ndani ya Admin Panel)
+    // ==========================================
     async function askSecretary() {
       const input = document.getElementById('adminAiInput');
       const output = document.getElementById('adminAiOutput');
       const text = input.value.trim();
       if (!text) return;
 
-      output.innerHTML += `<br><b>You:</b> ${text}`;
+      const storeTitle = document.getElementById('inputTitle').value;
+      const salesCount = parseInt(localStorage.getItem('store_sales_count') || "0");
+      const totalRevenue = salesCount * requiredAmountUSD;
+
+      output.innerHTML += `<div style="margin-top:6px; color:#fff;"><b>You:</b> ${text}</div>`;
       input.value = '';
-      
-      secretaryHistory.push({ role: "user", content: `Context -> Total items in store: ${storedImages.length}, Price: ${requiredAmountUSD} USDT. User message: ${text}` });
+
+      const typingId = "sec_typing_" + Date.now();
+      output.innerHTML += `<div id="${typingId}" style="margin-top:4px; color:#38bdf8;"><b>Secretary:</b> Checking records...</div>`;
+      output.scrollTop = output.scrollHeight;
+
+      const systemPrompt = {
+        role: "system",
+        content: `You are the owner's personal human executive secretary and store manager. Speak naturally, warmly, and directly like a sharp human assistant—no robotic filler or repetitive phrases. Here are the exact live store records right now:
+- Store/Product Name: "${storeTitle}"
+- Total Items Uploaded in Store: ${storedImages.length} items
+- Bundle Price: ${requiredAmountUSD} USDT (Polygon Network)
+- Receiver Wallet: ${sellerWallet}
+- Completed Sales Recorded on this Browser: ${salesCount} sales (Total Revenue: ${totalRevenue} USDT)
+Answer the owner's questions accurately using these exact numbers, do any math requested, and give practical business advice when asked.`
+      };
+
+      secretaryHistory.push({ role: "user", content: text });
+      if (secretaryHistory.length > 10) secretaryHistory = secretaryHistory.slice(-10);
 
       try {
         const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
@@ -368,21 +476,24 @@
             "Content-Type": "application/json"
           },
           body: JSON.stringify({
-            model: "llama3-8b-8192",
-            messages: secretaryHistory,
-            temperature: 0.7
+            model: GROQ_MODEL,
+            messages: [systemPrompt, ...secretaryHistory],
+            temperature: 0.7,
+            max_tokens: 250
           })
         });
+
         const data = await response.json();
         if (data.choices && data.choices[0]) {
-          const reply = data.choices[0].message.content;
-          output.innerHTML += `<br><b style="color:#38bdf8;">Secretary:</b> ${reply}`;
+          const reply = data.choices[0].message.content.trim();
+          document.getElementById(typingId).innerHTML = `<b>Secretary:</b> ${reply}`;
           secretaryHistory.push({ role: "assistant", content: reply });
         } else {
-          output.innerHTML += `<br><b style="color:#38bdf8;">Secretary:</b> Everything looks good boss!`;
+          const errMsg = data.error ? data.error.message : "Could not reach AI service.";
+          document.getElementById(typingId).innerHTML = `<span style="color:#ef4444;"><b>Secretary:</b> (${errMsg}) Right now we have ${storedImages.length} items priced at ${requiredAmountUSD} USDT.</span>`;
         }
       } catch(e) {
-        output.innerHTML += `<br><b style="color:#ef4444;">Secretary:</b> Network error connecting to AI service.`;
+        document.getElementById(typingId).innerHTML = `<span style="color:#ef4444;"><b>Secretary:</b> Network issue, but I can see we currently have ${storedImages.length} items in stock at ${requiredAmountUSD} USDT.</span>`;
       }
       output.scrollTop = output.scrollHeight;
     }
@@ -391,6 +502,9 @@
       if (e.key === 'Enter') askSecretary();
     }
 
+    // ==========================================
+    // WALLET & MALIPO YA USDT
+    // ==========================================
     async function connectWallet(type) {
       const status = document.getElementById("statusMessage");
       const payBtn = document.getElementById("payBtn");
@@ -448,6 +562,10 @@
         status.innerText = "Verifying exact transaction on Polygon Blockchain...";
         await tx.wait();
 
+        // Rekodi mauzo kwa ajili ya Secretary
+        let currentSales = parseInt(localStorage.getItem('store_sales_count') || "0");
+        localStorage.setItem('store_sales_count', (currentSales + 1).toString());
+
         status.innerText = "";
         payBtn.classList.add("hidden");
         document.getElementById('showroomTitle').style.display = 'none';
@@ -464,6 +582,9 @@
       }
     }
 
+    // ==========================================
+    // ADMIN PANEL & UPLOAD YA PICHA NYINGI
+    // ==========================================
     function openAdmin() {
       const pwd = prompt("Enter Owner Password:");
       if (pwd === currentAdminPassword) {
@@ -487,8 +608,8 @@
           const img = new Image();
           img.onload = function() {
             const canvas = document.createElement('canvas');
-            const MAX_WIDTH = 800;
-            const MAX_HEIGHT = 800;
+            const MAX_WIDTH = 900;
+            const MAX_HEIGHT = 900;
             let width = img.width;
             let height = img.height;
 
@@ -508,7 +629,7 @@
             canvas.height = height;
             const ctx = canvas.getContext('2d');
             ctx.drawImage(img, 0, 0, width, height);
-            resolve(canvas.toDataURL('image/jpeg', 0.7));
+            resolve(canvas.toDataURL('image/jpeg', 0.8));
           };
           img.src = e.target.result;
         };
@@ -517,6 +638,7 @@
     }
 
     async function saveAdminSettings() {
+      const saveBtn = document.getElementById('saveAdminBtn');
       const title = document.getElementById('inputTitle').value;
       const desc = document.getElementById('inputDesc').value;
       const price = document.getElementById('inputPrice').value;
@@ -531,33 +653,37 @@
 
       if (newPwd && newPwd.trim() !== '') {
         localStorage.setItem('admin_pwd', newPwd.trim());
+        currentAdminPassword = newPwd.trim();
       }
 
       if (fileInput.files.length > 0) {
-        alert("Compressing and uploading images, please wait...");
-        let newUploadedImages = [];
+        saveBtn.disabled = true;
+        saveBtn.innerText = "Uploading (" + fileInput.files.length + " files)...";
         
+        let newUploadedImages = [];
         for (let i = 0; i < fileInput.files.length; i++) {
           let compressedData = await compressImage(fileInput.files[i]);
           newUploadedImages.push(compressedData);
         }
 
         try {
-          let combinedImages = storedImages.concat(newUploadedImages);
-          localStorage.setItem('store_images', JSON.stringify(combinedImages));
-          alert("Success! Images compressed and added to store.");
+          storedImages = storedImages.concat(newUploadedImages);
+          await saveImagesToDB(storedImages);
+          alert("Success! " + newUploadedImages.length + " images added. Total in store: " + storedImages.length);
           closeAdmin();
           location.reload();
         } catch (err) {
-          alert("Error: Storage is completely full. Try uploading fewer images.");
+          saveBtn.disabled = false;
+          saveBtn.innerText = "Save Changes";
+          alert("Error saving images: " + err);
         }
       } else {
-        localStorage.setItem('store_images', JSON.stringify(storedImages));
-        alert("Success! Settings updated successfully.");
+        await saveImagesToDB(storedImages);
+        alert("Success! Settings updated.");
         closeAdmin();
         location.reload();
       }
     }
   </script>
 </body>
-</html>
+        </html>
