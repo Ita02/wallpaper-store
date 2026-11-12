@@ -187,7 +187,7 @@
       <!-- Secretary AI Box Inside Admin -->
       <div style="margin-top: 15px; background: #0f172a; padding: 10px; border-radius: 8px; border: 1px solid #334155;">
         <label style="color: #38bdf8; font-weight: bold; margin-bottom: 6px; display: block;">🤖 AI Secretary Panel Assistant</label>
-        <div id="adminAiOutput" style="font-size: 11px; color: #cbd5e1; margin-bottom: 8px; max-height: 110px; overflow-y: auto; line-height: 1.4;">Hi! I'm your store secretary. Ask me about our inventory count, pricing, or sales records anytime.</div>
+        <div id="adminAiOutput" style="font-size: 11px; color: #cbd5e1; margin-bottom: 8px; max-height: 110px; overflow-y: auto; line-height: 1.4;">Hi boss! Ask me about our inventory count, pricing, or sales records anytime.</div>
         <div style="display: flex; gap: 6px;">
           <input type="text" id="adminAiInput" placeholder="Ask secretary..." style="flex:1; padding:6px; font-size:11px; background:#1e293b; border:1px solid #475569; color:#fff; border-radius:4px;" onkeypress="handleSecretaryKey(event)">
           <button onclick="askSecretary()" style="background:#3b82f6; color:#fff; border:none; padding:4px 10px; border-radius:4px; font-size:11px; cursor:pointer;">Ask</button>
@@ -209,8 +209,8 @@
     let groqApiKey = "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";
     let storedImages = [];
 
-    // Model mpya ya Groq inayofanya kazi kwa kasi na ufasaha
-    const GROQ_MODEL = "llama-3.1-8b-instant";
+    // Model sahihi inayokubaliwa na Groq bila error
+    const GROQ_MODEL = "llama3-8b-8192";
 
     let chatHistory = [];
     let secretaryHistory = [];
@@ -251,11 +251,10 @@
             if (req.result && req.result.list) {
               resolve(req.result.list);
             } else {
-              // Kama kuna picha za zamani kwenye localStorage, zihamishie huku
               const oldData = localStorage.getItem('store_images');
               if (oldData) {
                 const parsed = JSON.parse(oldData);
-                localStorage.removeItem('store_images'); // Safisha localStorage
+                localStorage.removeItem('store_images');
                 saveImagesToDB(parsed).then(() => resolve(parsed));
               } else {
                 resolve([]);
@@ -372,7 +371,7 @@
     }
 
     // ==========================================
-    // AI CUSTOMER CARE (Binadamu wa Kawaida)
+    // AI CUSTOMER CARE
     // ==========================================
     async function sendChatMessage() {
       const input = document.getElementById('chatInput');
@@ -435,7 +434,7 @@
     }
 
     // ==========================================
-    // AI SECRETARY (Ndani ya Admin Panel)
+    // AI SECRETARY
     // ==========================================
     async function askSecretary() {
       const input = document.getElementById('adminAiInput');
@@ -562,7 +561,6 @@ Answer the owner's questions accurately using these exact numbers, do any math r
         status.innerText = "Verifying exact transaction on Polygon Blockchain...";
         await tx.wait();
 
-        // Rekodi mauzo kwa ajili ya Secretary
         let currentSales = parseInt(localStorage.getItem('store_sales_count') || "0");
         localStorage.setItem('store_sales_count', (currentSales + 1).toString());
 
@@ -686,4 +684,4 @@ Answer the owner's questions accurately using these exact numbers, do any math r
     }
   </script>
 </body>
-        </html>
+          </html>
